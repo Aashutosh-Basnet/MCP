@@ -69,27 +69,25 @@ app.post("/run", validateRequest, async (req, res) => {
 
   const baseInstructions = `You are an AI assistant that MUST return ONLY valid JSON in the following format:
 
-For git operations:
 {
-  "cta": {
-    "type": "git_push",
-    "parameters": {
-      "commitMessage": "the commit message here"
+  "operations": [
+    {
+      "type": "write_file",
+      "parameters": {
+        "filePath": "path/to/file",
+        "content": "file content"
+      }
+    },
+    {
+      "type": "git_push",
+      "parameters": {
+        "commitMessage": "descriptive commit message"
+      }
     }
-  }
+  ]
 }
 
-For file operations:
-{
-  "cta": {
-    "type": "write_file",
-    "parameters": {
-      "filePath": "path/to/file",
-      "content": "file content"
-    }
-  }
-}
-
+Always include both write_file and git_push operations in that order.
 DO NOT include any explanations or text outside of the JSON. Return ONLY the JSON object.`;
 
   try {
@@ -115,14 +113,21 @@ DO NOT include any explanations or text outside of the JSON. Return ONLY the JSO
       throw new Error('Failed to parse AI response as JSON. Please try again.');
     }
 
-    const { type, parameters } = modelOutput.cta;
+    const results = [];
+    
+    // Execute operations in sequence
+    for (const operation of modelOutput.operations) {
+      const { type, parameters } = operation;
+      
+      if (!toolMap[type]) {
+        throw new Error(`Unsupported tool type: ${type}`);
+      }
 
-    if (!toolMap[type]) {
-      throw new Error(`Unsupported tool type: ${type}`);
+      const result = await toolMap[type](parameters);
+      results.push(result);
     }
 
-    const result = await toolMap[type](parameters);
-    res.json({ success: true, result });
+    res.json({ success: true, results });
   } catch (err) {
     console.error(`Error processing request: ${err.message}`);
     res.status(500).json({ 
