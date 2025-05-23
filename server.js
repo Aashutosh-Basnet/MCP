@@ -30,9 +30,33 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+// Direct git push endpoint
+app.post("/git-push", async (req, res) => {
+  try {
+    const { commitMessage } = req.body;
+    if (!commitMessage) {
+      return res.status(400).json({ error: "Commit message is required" });
+    }
+    const result = await gitPush({ commitMessage: String(commitMessage) });
+    res.json({ success: true, result });
+  } catch (err) {
+    console.error(`Git operation failed: ${err.message}`);
+    res.status(500).json({
+      error: "Git operation failed",
+      message: err.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 const toolMap = {
   write_file: writeFile,
-  git_push: gitPush,
+  git_push: async (params) => {
+    if (!params.commitMessage) {
+      throw new Error('Commit message is required for git operations');
+    }
+    return gitPush({ commitMessage: String(params.commitMessage) });
+  }
 };
 
 // Health check endpoint
@@ -43,27 +67,54 @@ app.get("/health", (req, res) => {
 app.post("/run", validateRequest, async (req, res) => {
   const userPrompt = req.body.prompt;
 
-  const baseInstructions = `
-You are an AI code assistant that can return actions in this format:
+  const baseInstructions = `You are an AI assistant that MUST return ONLY valid JSON in the following format:
 
+For git operations:
 {
   "cta": {
-    "type": "write_file" or "git_push",
-    "parameters": { ... }
+    "type": "git_push",
+    "parameters": {
+      "commitMessage": "the commit message here"
+    }
   }
 }
-`;
+
+For file operations:
+{
+  "cta": {
+    "type": "write_file",
+    "parameters": {
+      "filePath": "path/to/file",
+      "content": "file content"
+    }
+  }
+}
+
+DO NOT include any explanations or text outside of the JSON. Return ONLY the JSON object.`;
 
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
-        { role: "system", content: baseInstructions },
-        { role: "user", content: userPrompt },
+        { 
+          role: "system", 
+          content: baseInstructions 
+        },
+        { 
+          role: "user", 
+          content: `Return a JSON object for this request: ${userPrompt}. Remember to return ONLY the JSON object, no other text.` 
+        },
       ],
     });
 
-    const modelOutput = JSON.parse(response.choices[0].message.content);
+    let modelOutput;
+    try {
+      modelOutput = JSON.parse(response.choices[0].message.content.trim());
+    } catch (parseError) {
+      console.error('Invalid JSON from OpenAI:', response.choices[0].message.content);
+      throw new Error('Failed to parse AI response as JSON. Please try again.');
+    }
+
     const { type, parameters } = modelOutput.cta;
 
     if (!toolMap[type]) {

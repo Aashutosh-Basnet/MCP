@@ -2,7 +2,7 @@
 
 A powerful Node.js server that acts as a Master Control Program, integrating OpenAI's GPT-4 with file operations and git capabilities.
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js (v14 or higher)
@@ -31,7 +31,7 @@ A powerful Node.js server that acts as a Master Control Program, integrating Ope
    echo "OPENAI_API_KEY=your_api_key_here" > .env
    ```
 
-## 🛠️ Project Structure
+## Project Structure
 
 ```
 mcp-server/
@@ -43,7 +43,7 @@ mcp-server/
     └── gitpush.js     # Git operation utility
 ```
 
-## 🔧 Usage
+## Usage
 
 1. Start the server:
    ```bash
@@ -63,7 +63,7 @@ mcp-server/
      -d '{"prompt": "your instruction here"}'
    ```
 
-## 📝 API Endpoints
+## API Endpoints
 
 ### Health Check
 - **GET** `/health`
@@ -95,7 +95,7 @@ mcp-server/
   }
   ```
 
-## 🔐 Security Features
+## Security Features
 
 1. Rate Limiting
    - 100 requests per 15 minutes per IP
@@ -113,7 +113,7 @@ mcp-server/
    - Secure API key storage
    - Configuration management
 
-## 🔄 Available Operations
+## Available Operations
 
 The MCP server can perform two main types of operations:
 
@@ -126,7 +126,7 @@ The MCP server can perform two main types of operations:
    - Push changes to repository
    - Handle git commands
 
-## 🛡️ Best Practices
+## Best Practices
 
 1. **API Key Security**
    - Never commit your .env file
@@ -143,7 +143,7 @@ The MCP server can perform two main types of operations:
    - Regular security audits
    - Backup configurations
 
-## 🔜 Next Steps
+## Next Steps
 
 1. Add authentication
 2. Implement more tools
@@ -151,7 +151,7 @@ The MCP server can perform two main types of operations:
 4. Set up CI/CD
 5. Add monitoring and logging
 
-## 📚 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create your feature branch
@@ -159,6 +159,6 @@ The MCP server can perform two main types of operations:
 4. Push to the branch
 5. Create a Pull Request
 
-## 📄 License
+## License
 
 This project is licensed under the ISC License. 
