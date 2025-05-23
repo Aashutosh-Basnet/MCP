@@ -9,16 +9,14 @@ const gitPush = require("./tools/gitpush");
 
 const app = express();
 
-// Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000, 
+  max: 100 
 });
 
 app.use(limiter);
 app.use(bodyParser.json());
 
-// Input validation middleware
 const validateRequest = (req, res, next) => {
   if (!req.body.prompt) {
     return res.status(400).json({ error: "Prompt is required" });
@@ -30,7 +28,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-// Direct git push endpoint
+
 app.post("/git-push", async (req, res) => {
   try {
     const { commitMessage } = req.body;
